@@ -3,23 +3,32 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -n web,cms -c cyan,magenta \"next dev\" \"npm run dev:cms\"",
+    "dev:web": "next dev",
+    "dev:cms": "PATH=\"/Users/alexissilva/Library/Application Support/Herd/config/nvm/versions/node/v22.11.0/bin:$PATH\" npm --prefix cms run develop",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "email": "email dev --dir emails"
   },
   "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@strapi/client": "^1.6.1",
     "next": "16.2.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "resend": "^6.12.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "react-email": "^6.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
