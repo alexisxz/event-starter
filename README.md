@@ -100,12 +100,52 @@ Set real values for the Strapi secrets in `cms/.env`. Do not keep the placeholde
 
 Minimum required keys:
 
+- `HOST`
+- `PORT`
 - `APP_KEYS`
 - `API_TOKEN_SALT`
 - `ADMIN_JWT_SECRET`
 - `TRANSFER_TOKEN_SALT`
 - `JWT_SECRET`
 - `ENCRYPTION_KEY`
+
+Recommended local values:
+
+- `HOST=0.0.0.0`
+- `PORT=1337`
+
+Generate new secret values for every new project. One simple option is to use Node directly:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Use that command to generate fresh values for:
+
+- `API_TOKEN_SALT`
+- `ADMIN_JWT_SECRET`
+- `TRANSFER_TOKEN_SALT`
+- `JWT_SECRET`
+- `ENCRYPTION_KEY`
+
+For `APP_KEYS`, generate two values and join them with a comma:
+
+```bash
+node -e "const crypto=require('crypto'); console.log(`${crypto.randomBytes(32).toString('hex')},${crypto.randomBytes(32).toString('hex')}`)"
+```
+
+Example `cms/.env` shape:
+
+```env
+HOST=0.0.0.0
+PORT=1337
+APP_KEYS="first-long-random-value,second-long-random-value"
+API_TOKEN_SALT=long-random-value
+ADMIN_JWT_SECRET=long-random-value
+TRANSFER_TOKEN_SALT=long-random-value
+JWT_SECRET=long-random-value
+ENCRYPTION_KEY=long-random-value
+```
 
 If you want a completely clean local CMS instance for the new event, remove any old SQLite database before the first run:
 
@@ -355,6 +395,184 @@ After changing a field, verify:
 - Strapi stores it correctly
 - the admin notification shows it correctly if expected
 - the confirmation email shows it correctly if expected
+
+## Deploy Online
+
+As of April 21, 2026:
+
+- Vercel Hobby is free forever for the frontend
+- Railway has a free tier for experimentation, but it is not a dependable free-forever backend host
+
+That means:
+
+- `Vercel + Railway` is the recommended low-cost deployment path for this template
+- `Railway + Railway` is a valid convenience option, but not the recommended free-forever path
+- neither option should be treated as a guaranteed free-forever full-stack production setup
+
+### Production Environment Variables
+
+#### Next.js deployment env vars
+
+Set these in your frontend host:
+
+- `STRAPI_URL`
+- `STRAPI_API_TOKEN`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+- `ADMIN_NOTIFICATION_EMAILS`
+
+Important:
+
+- `STRAPI_URL` must be the public deployed Strapi base URL, not `http://localhost:1337`
+- `STRAPI_API_TOKEN` must be created in the deployed Strapi admin
+- `RESEND_FROM_EMAIL` must use a verified domain for production sending
+- do not use `onboarding@resend.dev` as the production sender
+
+#### Strapi deployment env vars
+
+Set all values from `cms/.env.example` in your CMS host:
+
+- `HOST`
+- `PORT`
+- `APP_KEYS`
+- `API_TOKEN_SALT`
+- `ADMIN_JWT_SECRET`
+- `TRANSFER_TOKEN_SALT`
+- `JWT_SECRET`
+- `ENCRYPTION_KEY`
+
+Recommended hosted defaults:
+
+- `HOST=0.0.0.0`
+- `PORT=1337` unless your host requires a different port via platform config
+
+Do not reuse placeholder values like `tobemodified`. Generate fresh random secrets for every deployed CMS instance:
+
+- `APP_KEYS` should contain two long random values separated by a comma
+- `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`, and `ENCRYPTION_KEY` should each be long random strings
+
+You can generate them locally before pasting them into Railway or another host:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+For `APP_KEYS`:
+
+```bash
+node -e "const crypto=require('crypto'); console.log(`${crypto.randomBytes(32).toString('hex')},${crypto.randomBytes(32).toString('hex')}`)"
+```
+
+If you move away from SQLite, also configure the database variables supported by `cms/config/database.ts`, such as:
+
+- `DATABASE_CLIENT`
+- `DATABASE_URL`
+- `DATABASE_HOST`
+- `DATABASE_PORT`
+- `DATABASE_NAME`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+
+This template currently defaults to SQLite. That is convenient for local development, but may not be the right long-term choice for a durable hosted production CMS.
+
+### Example 1: Next.js On Vercel + Strapi On Railway
+
+This is the recommended path when you want the best long-term free frontend option.
+
+#### Service split
+
+- Vercel hosts the root Next.js app
+- Railway hosts the Strapi app from `cms/`
+
+#### Deploy the frontend to Vercel
+
+1. Push the repository to GitHub.
+2. Create a new Vercel project from that repository.
+3. Keep the root directory pointed at the repository root so Vercel deploys the Next.js app.
+4. Add these production environment variables in Vercel:
+   - `STRAPI_URL`
+   - `STRAPI_API_TOKEN`
+   - `RESEND_API_KEY`
+   - `RESEND_FROM_EMAIL`
+   - `ADMIN_NOTIFICATION_EMAILS`
+5. Deploy the project.
+
+Do not finalize `STRAPI_URL` or `STRAPI_API_TOKEN` until Strapi is deployed and reachable.
+
+#### Deploy Strapi to Railway
+
+1. Create a new Railway project.
+2. Deploy the `cms/` app as its own Railway service from the same repo.
+3. Point the Railway service at the `cms/` directory.
+4. Configure the Strapi env vars using `cms/.env.example`.
+5. Start Strapi with the `cms/package.json` scripts.
+6. Once Railway gives you a public URL, use that as the production `STRAPI_URL` in Vercel.
+
+#### Finish the integration
+
+1. Open the public Strapi admin URL.
+2. Create the first Strapi admin account if needed.
+3. Create a full-access API token in Strapi.
+4. Paste that token into Vercel as `STRAPI_API_TOKEN`.
+5. Redeploy the Vercel app so the updated env vars take effect.
+
+#### Caveat
+
+Railway is acceptable for a starter backend, but it should not be described as a guaranteed free-forever CMS host.
+
+### Example 2: Next.js And Strapi Both On Railway
+
+This is simpler operationally if you prefer one platform for both services.
+
+#### Service layout
+
+Use two Railway services from the same repository:
+
+- one service for the root Next.js app
+- one service for the `cms/` Strapi app
+
+#### Deploy the Next.js service
+
+1. Create a Railway service for the repository root.
+2. Use the root `package.json` for build and start.
+3. Configure these env vars on the Next.js service:
+   - `STRAPI_URL`
+   - `STRAPI_API_TOKEN`
+   - `RESEND_API_KEY`
+   - `RESEND_FROM_EMAIL`
+   - `ADMIN_NOTIFICATION_EMAILS`
+
+#### Deploy the Strapi service
+
+1. Create a second Railway service for `cms/`.
+2. Use `cms/package.json` for build and start.
+3. Configure all env vars from `cms/.env.example`.
+4. If you later switch databases, also add the database env vars supported in `cms/config/database.ts`.
+
+#### Connect the two services
+
+1. Wait for Railway to provision a public Strapi URL.
+2. Set that public Strapi URL as `STRAPI_URL` in the Next.js Railway service.
+3. Open the Strapi admin.
+4. Create the admin user and full-access API token.
+5. Add that token as `STRAPI_API_TOKEN` in the Next.js Railway service.
+6. Redeploy the frontend service after updating the env vars.
+
+#### Caveat
+
+This is not the recommended free-forever path because Railway’s current free tier is for experimentation.
+
+### Hosted Deployment Checklist
+
+After deploying, verify all of the following:
+
+- the frontend public URL loads
+- the Strapi admin public URL loads
+- `STRAPI_URL` in the deployed frontend points to the hosted Strapi URL, not localhost
+- the Strapi API token works from the deployed Next.js app
+- a live form submission creates an entry in hosted Strapi
+- the admin notification email sends
+- the attendee confirmation email sends
 
 ## Verification Checklist For A New Event
 
