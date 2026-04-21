@@ -8,6 +8,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Resellable **German-language** event-registration landing page, built for a marketing company to sell to clients. The same template is reused per client, with content swapped in.
 
+This repo is a reusable event template. Operational setup and client handoff instructions belong in [README.md](README.md); keep this file focused on coding constraints and stable implementation touchpoints.
+
 ## Language
 
 **All user-facing strings are in German (DE).** Labels, placeholders, error messages, email bodies, page copy. `<html lang="de">` is set in [app/layout.tsx](app/layout.tsx).
@@ -15,6 +17,24 @@ Resellable **German-language** event-registration landing page, built for a mark
 ## Design system
 
 Apply **Finsweet's Client First** conventions (adapted for Tailwind v4). Invoke the skill before writing or reviewing UI: [.claude/skills/client-first/SKILL.md](.claude/skills/client-first/SKILL.md).
+
+## Template maintenance
+
+- When registration fields change, keep all layers in sync:
+  - Strapi schema
+  - Zod validation and submit pipeline
+  - shared Strapi types
+  - form UI
+  - email templates
+- Git reset / client handoff guidance belongs in [README.md](README.md), not here.
+
+## Customization touchpoints
+
+- Strapi schema: [cms/src/api/event-registration/content-types/event-registration/schema.json](cms/src/api/event-registration/content-types/event-registration/schema.json)
+- Submit pipeline and validation: [app/actions.ts](app/actions.ts)
+- Strapi client and shared type: [lib/strapi.ts](lib/strapi.ts)
+- Resend config: [lib/resend.ts](lib/resend.ts)
+- Email templates: [emails/admin-notification.tsx](emails/admin-notification.tsx), [emails/confirmation.tsx](emails/confirmation.tsx)
 
 ## Stack map
 
@@ -32,7 +52,7 @@ Apply **Finsweet's Client First** conventions (adapted for Tailwind v4). Invoke 
 .
 ├── app/                  Next.js App Router (pages, layout, globals.css)
 ├── components/           UI components (layout, sections, form)
-├── emails/               @react-email templates (created in next phase)
+├── emails/               @react-email templates
 ├── lib/
 │   ├── env.ts            Env-var guards (requireEnv)
 │   ├── strapi.ts         Strapi client + eventRegistrations collection
