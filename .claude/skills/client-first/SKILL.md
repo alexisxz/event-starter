@@ -21,7 +21,7 @@ Finsweet's Client First is a Webflow-origin methodology. The spirit — clarity 
 // app/page.tsx
 <PageWrapper>
   <MainWrapper>
-    <Section id="hero" variant="padding-section-large">
+    <Section id="hero" variant="large">
       <PaddingGlobal>
         <Container size="large">
           {/* content */}
@@ -42,7 +42,7 @@ Build these once as small React components, then reuse everywhere. Don't re-deri
 
 ## 3. Spacing tokens (define in `app/globals.css @theme`)
 
-Use the rem-based scale. Map to Tailwind v4 theme variables so utilities like `p-[section-small]` work if needed, but prefer the wrapper components above for page-level spacing.
+Use the rem-based scale in `@theme`. In this repo, prefer the wrapper classes above for page-level spacing and use CSS variable values directly for local spacing, e.g. `gap-[var(--spacing-large)]` or `mt-[var(--spacing-medium)]`.
 
 ```css
 @theme {
@@ -66,6 +66,20 @@ Use the rem-based scale. Map to Tailwind v4 theme variables so utilities like `p
   --container-small: 40rem;   /* 640px */
   --container-medium: 60rem;  /* 960px */
   --container-large: 80rem;   /* 1280px */
+}
+```
+
+Define the reusable wrapper utilities in `globals.css` and use them consistently:
+
+```css
+@layer utilities {
+  .padding-global { padding-inline: var(--spacing-global); }
+  .padding-section-small { padding-block: var(--spacing-section-small); }
+  .padding-section-medium { padding-block: var(--spacing-section-medium); }
+  .padding-section-large { padding-block: var(--spacing-section-large); }
+  .container-small { max-width: var(--container-small); }
+  .container-medium { max-width: var(--container-medium); }
+  .container-large { max-width: var(--container-large); }
 }
 ```
 
@@ -144,6 +158,8 @@ Prefer rem-scaling via root font-size over peppering every utility with `md:`/`l
 ## 8. File layout (React components)
 
 ```
+app/
+  actions.ts               // server action + zod validation + submit pipeline
 components/
   layout/
     page-wrapper.tsx
@@ -154,22 +170,26 @@ components/
   sections/
     hero.tsx
     benefits.tsx
-    cta.tsx
     footer.tsx
   form/
     registration-form.tsx   // 'use client' — uses useActionState
     form-field.tsx
+emails/
+  admin-notification.tsx
+  confirmation.tsx
 ```
 
-Colocate section-specific subcomponents under the section's folder. Shared primitives live in `components/layout/` and `components/form/`.
+Colocate section-specific subcomponents under the section's folder. Shared primitives live in `components/layout/` and `components/form/`. If a form field changes, the UI is not the only place to update: keep `app/actions.ts`, `lib/strapi.ts`, and `emails/*` aligned with the rendered form.
 
 ## 9. Quick checklist before committing UI
 
 - [ ] All copy is in German.
 - [ ] Section uses `<PageWrapper><MainWrapper><Section><PaddingGlobal><Container>` structure.
 - [ ] Spacing comes from `--spacing-*` tokens, not magic numbers.
+- [ ] Page-level spacing uses `padding-global`, `padding-section-*`, and `container-*`; local spacing uses `var(--spacing-...)`.
 - [ ] Class combos repeated 3+ times are extracted to `globals.css`.
 - [ ] Semantic tags: `<main>`, `<section>`, `<nav>`, `<header>`, `<footer>`, heading hierarchy correct.
 - [ ] Focus-visible works with keyboard.
 - [ ] Forms: explicit input font-size, autocomplete hints, German errors, `aria-describedby`.
+- [ ] If registration fields changed, the Strapi schema, `app/actions.ts`, `lib/strapi.ts`, form UI, and emails were updated together.
 - [ ] Tested at mobile (≤479px), tablet (768px), desktop (≥1440px).
