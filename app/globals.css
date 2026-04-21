@@ -2,7 +2,10 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
+  --muted: #6b7280;
+  --accent: #111827;
+  --border: rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
@@ -12,10 +15,35 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --spacing-0: 0rem;
+  --spacing-small: 0.5rem;
+  --spacing-medium: 1rem;
+  --spacing-large: 2rem;
+  --spacing-xlarge: 4rem;
+  --spacing-xxhuge: 8rem;
+  --spacing-global: 1.5rem;
+  --spacing-section-small: 3rem;
+  --spacing-section-medium: 5rem;
+  --spacing-section-large: 8rem;
+  --container-small: 40rem;
+  --container-medium: 60rem;
+  --container-large: 80rem;
+}
+
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 991px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 479px) {
+  html {
+    font-size: 14px;
   }
 }
 
@@ -23,4 +51,67 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@layer utilities {
+  .padding-global {
+    padding-inline: var(--spacing-global);
+  }
+  .padding-section-small {
+    padding-block: var(--spacing-section-small);
+  }
+  .padding-section-medium {
+    padding-block: var(--spacing-section-medium);
+  }
+  .padding-section-large {
+    padding-block: var(--spacing-section-large);
+  }
+  .container-small {
+    max-width: var(--container-small);
+  }
+  .container-medium {
+    max-width: var(--container-medium);
+  }
+  .container-large {
+    max-width: var(--container-large);
+  }
+  .heading-style-h1 {
+    @apply text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl;
+  }
+  .heading-style-h2 {
+    @apply text-3xl font-bold leading-tight tracking-tight sm:text-4xl;
+  }
+  .heading-style-h3 {
+    @apply text-2xl font-semibold leading-snug sm:text-3xl;
+  }
+  .heading-style-h4 {
+    @apply text-xl font-semibold leading-snug sm:text-2xl;
+  }
+  .heading-style-h5 {
+    @apply text-lg font-semibold leading-normal;
+  }
+  .heading-style-h6 {
+    @apply text-base font-medium leading-normal;
+  }
+  .text-style-allcaps {
+    @apply uppercase tracking-[0.15em] text-xs font-semibold;
+  }
+}
+
+@layer components {
+  .form_label {
+    @apply block text-sm font-medium text-gray-800 mb-1.5;
+  }
+  .form_input {
+    @apply w-full rounded-lg border border-black/10 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10;
+  }
+  .form_input--error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-100;
+  }
+  .form_error {
+    @apply mt-1.5 text-sm text-red-600;
+  }
+  .form_submit {
+    @apply w-full rounded-lg bg-black px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-gray-900 disabled:opacity-60 disabled:cursor-not-allowed transition-colors;
+  }
 }
